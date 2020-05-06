@@ -6,7 +6,6 @@
 package ovh.homefox.edtimelapse.dialogs;
 
 import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 
 /**
  *
@@ -15,18 +14,22 @@ import javax.swing.JProgressBar;
 public class OptionPanes {
     
     public boolean displaySuccessfulScreenshots(){
-        JOptionPane.showMessageDialog(null, "The program finished taking screenshots!");
+        JOptionPane.showMessageDialog(null, "The program finished taking screenshots!", "Finished!", JOptionPane.INFORMATION_MESSAGE);
         return true;
     }
     
-    public boolean displayProgressBar(){
-        JProgressBar progress = new JProgressBar(1, 100);
-        String remaining = "Time remaining: ";
-        Object[] message = {
-            "Time remaining: ",
-            "Progress: ", progress
-        };
-        int option = JOptionPane.showConfirmDialog(null, message, "Taking screenshots...", JOptionPane.OK_CANCEL_OPTION);
-        return (option == JOptionPane.OK_OPTION);
+    public boolean displayCancelledScreenshots(){
+        JOptionPane.showMessageDialog(null, "You successfully cancelled the task.", "Cancelled", JOptionPane.INFORMATION_MESSAGE);
+        return true;
+    }
+    
+    public boolean displayFormError(){
+        JOptionPane.showMessageDialog(null, 
+                "Interval must be set to a value higher than 5s.\n"
+                + "You should set the interval value according to your pc performances.\n"
+                + "If there is no duration, this software will keep running until you manually stop it.",
+                "Error!", 
+                JOptionPane.ERROR_MESSAGE);
+        return true;
     }
 }

@@ -6,12 +6,11 @@
 package ovh.homefox.edtimelapse;
 
 import ovh.homefox.edtimelapse.dialogs.OptionPanes;
-import java.util.Date;
-import java.util.Timer;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import ovh.homefox.edtimelapse.timertasks.StopTakingScreenshots;
-import ovh.homefox.edtimelapse.timertasks.TakeScreenshots;
+import ovh.homefox.edtimelapse.worker.BaseScreenshotWorker;
+import ovh.homefox.edtimelapse.worker.FiniteScreenshotWorker;
+import ovh.homefox.edtimelapse.worker.InfiniteScreenshotWorker;
 
 /**
  *
@@ -20,14 +19,22 @@ import ovh.homefox.edtimelapse.timertasks.TakeScreenshots;
 public class EDTimelapse extends javax.swing.JFrame {
     
     OptionPanes optionPanes = new OptionPanes();
-
+    BaseScreenshotWorker pgw;
+    long duration;
+    long interval;
+    
+    private final long HOURSTOMS = 3600000;
+    private final long MINUTESTOMS = 60000;
+    private final long SECONDSTOMS = 1000;
+    private final int MINDURATION = 0;
+    private final int MININTERVAL = 5000;
+    
     /**
      * Creates new form EDTimelapse
      */
     public EDTimelapse() {
         initComponents();
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -38,7 +45,20 @@ public class EDTimelapse extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
         startButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
+        timelapseProgressBar = new javax.swing.JProgressBar();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        durationMinutesSpinner = new javax.swing.JSpinner();
+        jLabel3 = new javax.swing.JLabel();
+        durationHoursSpinner = new javax.swing.JSpinner();
+        jLabel4 = new javax.swing.JLabel();
+        intervalMinutesSpinner = new javax.swing.JSpinner();
+        jLabel5 = new javax.swing.JLabel();
+        intervalSecondsSpinner = new javax.swing.JSpinner();
+        jLabel6 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("EDTimelapse");
@@ -50,30 +70,139 @@ public class EDTimelapse extends javax.swing.JFrame {
             }
         });
 
+        stopButton.setText("Stop");
+        stopButton.setEnabled(false);
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+
+        timelapseProgressBar.setStringPainted(true);
+
+        jLabel1.setText("Duration :");
+
+        jLabel2.setText("Interval :");
+
+        durationMinutesSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 59, 1));
+
+        jLabel3.setText("h");
+
+        durationHoursSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+
+        jLabel4.setText("m");
+
+        intervalMinutesSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+
+        jLabel5.setText("m");
+
+        intervalSecondsSpinner.setModel(new javax.swing.SpinnerNumberModel(5, 5, 59, 1));
+
+        jLabel6.setText("s");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(timelapseProgressBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(startButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(stopButton))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(durationHoursSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel3))
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(intervalMinutesSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel5)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(durationMinutesSpinner)
+                                    .addComponent(intervalSecondsSpinner))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel6))))))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel3)
+                    .addComponent(durationHoursSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(durationMinutesSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(intervalMinutesSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel5)
+                    .addComponent(intervalSecondsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(stopButton)
+                    .addComponent(startButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(timelapseProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(startButton)
-                .addContainerGap(333, Short.MAX_VALUE))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(startButton)
-                .addContainerGap(266, Short.MAX_VALUE))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
-        startButton.setEnabled(false);
-        startTakingScreenshots(500, 1000);
+        if(getFormInformations()) {
+            activateStop();
+            startTakingScreenshots(interval, duration);
+        } else {
+            optionPanes.displayFormError();
+        }
     }//GEN-LAST:event_startButtonActionPerformed
+
+    /**
+     * Permet de récupérer les valeurs du formulaire et de les
+     * transformer en ms.
+     * @return true si tout va bien.
+     */
+    private boolean getFormInformations(){
+        duration = (Integer)durationHoursSpinner.getValue() * HOURSTOMS + (Integer)durationMinutesSpinner.getValue() * MINUTESTOMS;
+        interval = (Integer)intervalMinutesSpinner.getValue() * MINUTESTOMS + (Integer)intervalSecondsSpinner.getValue() * SECONDSTOMS;
+        return interval >= MININTERVAL && duration >= MINDURATION;
+    }
+    
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        pgw.cancel(true);
+        activateStart();
+    }//GEN-LAST:event_stopButtonActionPerformed
 
     /**
      * Fonction de lancement des timers pour la prise de screenshots.
@@ -81,14 +210,30 @@ public class EDTimelapse extends javax.swing.JFrame {
      * @param globalLength Durée globale de la capture, en ms. Si la valeur est à 0, la prise s'arrêtera lorsque l'utilisateur le choisira.
      */
     private void startTakingScreenshots(long timeBetweenEachScreenshot, long globalLength){
-        Timer screenshotTimer = new Timer();
-        if(globalLength > 0){
-            Timer stopTakingScreenshotsTimer = new Timer();
-            StopTakingScreenshots stopTakingScreenshots = new StopTakingScreenshots(screenshotTimer, startButton);
-            stopTakingScreenshotsTimer.schedule(stopTakingScreenshots, globalLength);
-            optionPanes.displayProgressBar();
+        if(globalLength == 0) {
+            pgw = new InfiniteScreenshotWorker(timeBetweenEachScreenshot, timelapseProgressBar, this);
+        } else {
+            pgw = new FiniteScreenshotWorker(globalLength, timeBetweenEachScreenshot, timelapseProgressBar, this);
         }
-        screenshotTimer.scheduleAtFixedRate(new TakeScreenshots(), new Date(), timeBetweenEachScreenshot);
+        pgw.execute();
+    }
+    
+    /**
+     * Permet d'activer le bouton de démarrage, et de désactiver celui d'arrêt
+     * de la prise de screenshots.
+     */
+    public void activateStart(){
+        startButton.setEnabled(true);
+        stopButton.setEnabled(false);
+    }
+    
+    /**
+    * Permet d'activer le bouton d'arrêt, et de désactiver celui de démarrage
+    * de la prise de screenshots.
+    */
+    public void activateStop(){
+        startButton.setEnabled(false);
+        stopButton.setEnabled(true);
     }
     
     /**
@@ -109,6 +254,19 @@ public class EDTimelapse extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JSpinner durationHoursSpinner;
+    private javax.swing.JSpinner durationMinutesSpinner;
+    private javax.swing.JSpinner intervalMinutesSpinner;
+    private javax.swing.JSpinner intervalSecondsSpinner;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JButton startButton;
+    private javax.swing.JButton stopButton;
+    private javax.swing.JProgressBar timelapseProgressBar;
     // End of variables declaration//GEN-END:variables
 }
