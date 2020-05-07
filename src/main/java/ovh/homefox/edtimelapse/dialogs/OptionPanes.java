@@ -18,7 +18,7 @@ public class OptionPanes {
         return true;
     }
     
-    public boolean displayCancelledScreenshots(){
+    public boolean displayCancelledTask(){
         JOptionPane.showMessageDialog(null, "You successfully cancelled the task.", "Cancelled", JOptionPane.INFORMATION_MESSAGE);
         return true;
     }
@@ -30,6 +30,11 @@ public class OptionPanes {
                 + "If there is no duration, this software will keep running until you manually stop it.",
                 "Error!", 
                 JOptionPane.ERROR_MESSAGE);
+        return true;
+    }
+    
+    public boolean displaySuccessfulEncoding(){
+        JOptionPane.showMessageDialog(null, "The program finished encoding!", "Finished!", JOptionPane.INFORMATION_MESSAGE);
         return true;
     }
 }

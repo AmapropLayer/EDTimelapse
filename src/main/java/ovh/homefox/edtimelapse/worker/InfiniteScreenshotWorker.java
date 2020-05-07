@@ -33,7 +33,7 @@ public class InfiniteScreenshotWorker extends BaseScreenshotWorker {
         }
         resetProgress();
         if(this.isCancelled()){
-            optionPanes.displayCancelledScreenshots();
+            optionPanes.displayCancelledTask();
         }else{
             optionPanes.displaySuccessfulScreenshots();
         }

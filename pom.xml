@@ -10,4 +10,11 @@
         <maven.compiler.source>12</maven.compiler.source>
         <maven.compiler.target>12</maven.compiler.target>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.openpnp</groupId>
+            <artifactId>opencv</artifactId>
+            <version>4.3.0-1</version>
+        </dependency>
+    </dependencies>
 </project>
