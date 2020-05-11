@@ -32,8 +32,8 @@ public class VideoEncodingWorker extends SwingWorker<Void, Void>{
     private final String videoName;
     private VideoWriter videoWriter;
     private Size frameSize;
-    private JProgressBar progressBar;
-    private OptionPanes optionPanes = new OptionPanes();
+    private final JProgressBar progressBar;
+    private final OptionPanes optionPanes = new OptionPanes();
     private final EDTimelapse frame;
     
     public VideoEncodingWorker(int fps, String screenshotsPath, String videoPath, String videoName, JProgressBar progressBar, EDTimelapse frame){

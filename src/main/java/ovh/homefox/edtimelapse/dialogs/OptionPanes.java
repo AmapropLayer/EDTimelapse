@@ -37,4 +37,9 @@ public class OptionPanes {
         JOptionPane.showMessageDialog(null, "The program finished encoding!", "Finished!", JOptionPane.INFORMATION_MESSAGE);
         return true;
     }
+    
+    public boolean displayFormError(String details){
+        JOptionPane.showMessageDialog(null, details, "Error!", JOptionPane.ERROR_MESSAGE);
+        return true;
+    }
 }

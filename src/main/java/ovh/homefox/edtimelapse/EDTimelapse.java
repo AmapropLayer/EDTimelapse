@@ -6,10 +6,14 @@
 package ovh.homefox.edtimelapse;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import javax.swing.JFileChooser;
 import ovh.homefox.edtimelapse.dialogs.OptionPanes;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import ovh.homefox.edtimelapse.exception.FormException;
 import ovh.homefox.edtimelapse.worker.BaseScreenshotWorker;
 import ovh.homefox.edtimelapse.worker.FiniteScreenshotWorker;
 import ovh.homefox.edtimelapse.worker.InfiniteScreenshotWorker;
@@ -26,6 +30,7 @@ public class EDTimelapse extends javax.swing.JFrame {
     VideoEncodingWorker vew;
     long duration;
     long interval;
+    JFileChooser fc; 
     
     private final long HOURSTOMS = 3600000;
     private final long MINUTESTOMS = 60000;
@@ -38,6 +43,7 @@ public class EDTimelapse extends javax.swing.JFrame {
      */
     public EDTimelapse() {
         initComponents();
+        initTextFields();
     }
 
     /**
@@ -338,7 +344,7 @@ public class EDTimelapse extends javax.swing.JFrame {
     }//GEN-LAST:event_startButtonActionPerformed
 
     /**
-     * Permet de récupérer les valeurs du formulaire et de les
+     * Permet de récupérer les valeurs du formulaire des screenshots et de les
      * transformer en ms.
      * @return true si tout va bien.
      */
@@ -353,32 +359,99 @@ public class EDTimelapse extends javax.swing.JFrame {
     }//GEN-LAST:event_stopButtonActionPerformed
 
     private void startProcessingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startProcessingButtonActionPerformed
-        vew = new VideoEncodingWorker(Integer.parseInt(fpsTextField.getText()), 
-                screenshotPathTextField.getText(), 
-                videoPathTextField.getText(), 
-                videoNameTextField.getText(),
-                encodingProgressBar,
-                this
-        );
-        activateStopProcessing();
-        vew.execute();
+        try {
+            verifyVideoForm();
+            vew = new VideoEncodingWorker(Integer.parseInt(fpsTextField.getText()),
+                    screenshotPathTextField.getText(),
+                    videoPathTextField.getText(),
+                    videoNameTextField.getText(),
+                    encodingProgressBar,
+                    this
+            );
+            activateStopProcessing();
+            vew.execute();
+        } catch (FormException ex) {
+            optionPanes.displayFormError(ex.getMessage());
+        }
     }//GEN-LAST:event_startProcessingButtonActionPerformed
 
+    private void verifyVideoForm() throws FormException{
+        if(!verifyPaths()){
+            throw new FormException("At least one directory doesn't exist.");
+        }
+        if(!isFPSInteger()){
+            throw new FormException("The FPS field must contain an integer.");
+        }
+        if(isScreenshotPathEmpty()){
+            throw new FormException("The screenshot folder doesn't contain any bmp file.");
+        }
+        if(isVideoPresent()){
+            throw new FormException("A video with this name already exists.");
+        }
+    }
+    
+    /**
+     * Vérifie la non présence d'images bmp dans le répertoire.
+     * @return True si il n'y a pas d'images, false sinon.
+     */
+    private boolean isScreenshotPathEmpty(){
+        File path = new File(screenshotPathTextField.getText());
+        if(path.listFiles((File dir, String name) -> name.endsWith(".bmp")).length == 0){
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Vérifie la présence d'une vidéo dans le répertoire.
+     * @return True si la vidéo existe, false sinon.
+     */
+    private boolean isVideoPresent(){
+        File path = new File(videoPathTextField.getText());
+        for(File f : path.listFiles()){
+            if((f.getName()).equals(videoNameTextField.getText() + ".mp4")){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Vérification de la présence de chiffres dans le textField des fps.
+     * @return True si correspondant, false sinon.
+     */
+    private boolean isFPSInteger(){
+        return fpsTextField.getText().matches("[0-9]+");
+    }
+    
+    /**
+     * Vérification de la validité des paths vidéo et screenshot.
+     * @return True si ils existent, false sinon.
+     */
+    private boolean verifyPaths(){
+        Path screenshotPath = Path.of(screenshotPathTextField.getText());
+        Path videoPath = Path.of(videoPathTextField.getText());
+        if(Files.exists(screenshotPath, LinkOption.NOFOLLOW_LINKS) && Files.exists(videoPath, LinkOption.NOFOLLOW_LINKS)){
+            return true;
+        }
+        return false;
+    }
+    
     private void browseScreenshotsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseScreenshotsButtonActionPerformed
-        JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Screenshot browser");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setCurrentDirectory(new File(System.getProperty("user.home") + System.getProperty("file.separator")+ "Pictures"));
+        File screenshotsFile = new File(screenshotPathTextField.getText());
+        fc.setCurrentDirectory(screenshotsFile);
+        fc.setSelectedFile(screenshotsFile);
         if(fc.showOpenDialog(browseScreenshotsButton) == JFileChooser.APPROVE_OPTION){
             screenshotPathTextField.setText(fc.getSelectedFile().getAbsolutePath());
         }
     }//GEN-LAST:event_browseScreenshotsButtonActionPerformed
 
     private void browseVideoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseVideoButtonActionPerformed
-        JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Video browser");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setCurrentDirectory(new File(System.getProperty("user.home") + System.getProperty("file.separator")+ "Videos"));
+        File videoFile = new File(videoPathTextField.getText());
+        fc.setCurrentDirectory(videoFile);
+        fc.setSelectedFile(videoFile);
         if(fc.showOpenDialog(browseVideoButton) == JFileChooser.APPROVE_OPTION){
             videoPathTextField.setText(fc.getSelectedFile().getAbsolutePath());
         }
@@ -388,6 +461,27 @@ public class EDTimelapse extends javax.swing.JFrame {
         vew.cancel(true);
     }//GEN-LAST:event_stopProcessingButtonActionPerformed
 
+    private void initTextFields(){
+        fc = new JFileChooser(){
+            @Override
+            public void approveSelection(){
+                File f = getSelectedFile();
+                if(f.isFile()){
+                    super.setSelectedFile(f.getParentFile());
+                }
+                super.approveSelection();
+            }
+        };
+        fc.setApproveButtonText("Select directory");
+        fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        String separator = System.getProperty("file.separator");
+        screenshotPathTextField.setText(System.getProperty("user.home") + separator 
+                + "Pictures" + separator 
+                + "Frontier Developments" + separator 
+                + "Elite Dangerous");
+        videoPathTextField.setText(System.getProperty("user.home") + separator + "Videos");
+    }
+    
     /**
      * Fonction de lancement des timers pour la prise de screenshots.
      * @param timeBetweenEachScreenshot Durée entre chaque screenshot, en ms.
